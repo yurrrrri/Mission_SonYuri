@@ -52,4 +52,10 @@ public class LikeablePersonService {
     public LikeablePerson findById(Long id) {
         return likeablePersonRepository.findById(id).orElse(null);
     }
+
+    @Transactional
+    public RsData<LikeablePerson> delete(LikeablePerson likeablePerson){
+        likeablePersonRepository.delete(likeablePerson);
+        return RsData.of("S-1", "호감상대가 삭제되었습니다.");
+    }
 }
