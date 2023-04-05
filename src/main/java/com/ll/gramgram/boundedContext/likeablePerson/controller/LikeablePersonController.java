@@ -67,7 +67,7 @@ public class LikeablePersonController {
     public String delete(@PathVariable("id") Long id) {
         LikeablePerson likeablePerson = likeablePersonService.findById(id);
         if(!likeablePerson.getFromInstaMember().equals(rq.getMember().getInstaMember())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제 권한이 없습니다.");
+            return rq.historyBack("삭제 권한이 없습니다.");
         }
         RsData<LikeablePerson> createRsData = likeablePersonService.delete(likeablePerson);
         return rq.redirectWithMsg("/likeablePerson/list", createRsData);
