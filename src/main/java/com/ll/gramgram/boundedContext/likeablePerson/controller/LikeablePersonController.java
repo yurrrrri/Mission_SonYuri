@@ -66,10 +66,10 @@ public class LikeablePersonController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable("id") Long id) {
         LikeablePerson likeablePerson = likeablePersonService.findById(id);
-        if(!likeablePerson.getFromInstaMember().equals(rq.getMember().getInstaMember())){
-            return rq.historyBack("삭제 권한이 없습니다.");
+        RsData<LikeablePerson> deleteRsData = likeablePersonService.delete(rq.getMember(), likeablePerson);
+        if(deleteRsData.isFail()) {
+            return rq.historyBack(deleteRsData);
         }
-        RsData<LikeablePerson> createRsData = likeablePersonService.delete(likeablePerson);
-        return rq.redirectWithMsg("/likeablePerson/list", createRsData);
+        return rq.redirectWithMsg("/likeablePerson/list", deleteRsData);
     }
 }
