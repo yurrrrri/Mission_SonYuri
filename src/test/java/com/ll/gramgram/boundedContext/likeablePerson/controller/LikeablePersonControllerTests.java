@@ -17,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -162,7 +161,8 @@ public class LikeablePersonControllerTests {
     void t006() throws Exception {
         // WHEN
         ResultActions resultActions = mvc
-                .perform(get("/likeablePerson/delete/2"))
+                .perform(delete("/likeablePerson/2")
+                        .with(csrf()))
                 .andDo(print());
 
         // THEN
@@ -173,5 +173,42 @@ public class LikeablePersonControllerTests {
 
         LikeablePerson likeablePerson = likeablePersonService.findById(2L);
         assertThat(likeablePerson).isNull();
+    }
+
+    @Test
+    @DisplayName("user3에 등록 안 된 호감상대 삭제")
+    @WithUserDetails("user3")
+    void t007() throws Exception {
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(delete("/likeablePerson/100")
+                        .with(csrf()))
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(LikeablePersonController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("권한 없이 호감 상대 삭제 시도")
+    @WithUserDetails("user2")
+    void t008() throws Exception {
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(delete("/likeablePerson/1")
+                        .with(csrf()))
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(LikeablePersonController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().is4xxClientError());
+
+        LikeablePerson likeablePerson = likeablePersonService.findById(1L);
+        assertThat(likeablePerson).isNotNull();
     }
 }
