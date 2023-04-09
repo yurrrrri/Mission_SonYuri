@@ -2,11 +2,6 @@ spring:
   profiles:
     include: KEY
     active: dev
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://127.0.0.1:3306/gram__dev?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul
-    username: llid
-    password: llid123124
   security:
     oauth2:
       client:
