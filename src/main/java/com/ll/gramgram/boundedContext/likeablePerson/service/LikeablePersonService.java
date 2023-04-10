@@ -22,24 +22,27 @@ public class LikeablePersonService {
 
     @Transactional
     public RsData<LikeablePerson> like(Member member, String username, int attractiveTypeCode) {
-        List<LikeablePerson> likeablePeople = member.getInstaMember().getFromLikeablePeople();
-        if(likeablePeople.stream().anyMatch(likeablePerson -> likeablePerson.getToInstaMember().getUsername().equals(username))){
-            Optional<LikeablePerson> likeablePerson = likeablePeople.stream().filter(likeablePerson1 -> likeablePerson1.getToInstaMember().getUsername().equals(username)).findFirst();
-            if(likeablePerson.get().getAttractiveTypeCode() == attractiveTypeCode) {
-                return RsData.of("F-4", "호감 상대를 중복으로 등록할 수 없습니다.");
-            }
-        }
-
-        if(likeablePeople.size() >= 10) {
-            return RsData.of("F-3", "호감 상대는 최대 10명까지 등록할 수 있습니다.");
-        }
-
         if ( member.hasConnectedInstaMember() == false ) {
             return RsData.of("F-2", "먼저 본인의 인스타그램 아이디를 입력해야 합니다.");
         }
 
         if (member.getInstaMember().getUsername().equals(username)) {
             return RsData.of("F-1", "본인을 호감상대로 등록할 수 없습니다.");
+        }
+
+        List<LikeablePerson> likeablePeople = member.getInstaMember().getFromLikeablePeople();
+
+        if(likeablePeople.stream().anyMatch(likeablePerson -> likeablePerson.getToInstaMember().getUsername().equals(username))){
+            LikeablePerson likeablePerson = likeablePeople.stream().filter(likeablePerson1 -> likeablePerson1.getToInstaMember().getUsername().equals(username)).findFirst().get();
+            if(likeablePerson.getAttractiveTypeCode() == attractiveTypeCode) {
+                return RsData.of("F-4", "호감상대를 중복으로 등록할 수 없습니다.");
+            } else {
+                return update(member, likeablePerson, attractiveTypeCode);
+            }
+        }
+
+        if(likeablePeople.size() >= 10) {
+            return RsData.of("F-3", "호감상대는 최대 10명까지 등록할 수 있습니다.");
         }
 
         InstaMember fromInstaMember = member.getInstaMember();
@@ -81,5 +84,16 @@ public class LikeablePersonService {
 
         String deleteUsername = likeablePerson.getToInstaMember().getUsername();
         return RsData.of("S-1", "호감상대 %s 님이 삭제되었습니다.".formatted(deleteUsername));
+    }
+
+    @Transactional
+    public RsData<LikeablePerson> update(Member member, LikeablePerson likeablePerson, int attractiveTypeCode) {
+        if ( member.hasConnectedInstaMember() == false ) {
+            return RsData.of("F-1", "먼저 본인의 인스타그램 아이디를 입력해야 합니다.");
+        }
+
+        LikeablePerson likeablePerson1 = likeablePerson.toBuilder().attractiveTypeCode(attractiveTypeCode).build();
+        likeablePersonRepository.save(likeablePerson1);
+        return RsData.of("S-2", "%s에 대한 호감 사유를 변경하였습니다.".formatted(likeablePerson.getToInstaMember().getUsername()));
     }
 }
