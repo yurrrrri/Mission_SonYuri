@@ -211,4 +211,45 @@ public class LikeablePersonControllerTests {
         LikeablePerson likeablePerson = likeablePersonService.findById(1L);
         assertThat(likeablePerson).isNotNull();
     }
+
+    @Test
+    @DisplayName("호감 상대 중복 등록 시도")
+    @WithUserDetails("user3")
+    void t009() throws Exception {
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(post("/likeablePerson/add")
+                        .with(csrf())
+                        .param("username", "insta_user4")
+                        .param("attractiveTypeCode", "1"))
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(LikeablePersonController.class))
+                .andExpect(handler().methodName("add"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("호감 상대 중복 등록 시 호감 사유가 다르면 수정 처리")
+    @WithUserDetails("user3")
+    void t010() throws Exception {
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(post("/likeablePerson/add")
+                        .with(csrf())
+                        .param("username", "insta_user4")
+                        .param("attractiveTypeCode", "2"))
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(LikeablePersonController.class))
+                .andExpect(handler().methodName("add"))
+                .andExpect(status().is3xxRedirection());
+
+        LikeablePerson likeablePerson = likeablePersonService.findById(1L);
+        assertThat(likeablePerson.getAttractiveTypeCode()).isEqualTo(2);
+    }
 }
