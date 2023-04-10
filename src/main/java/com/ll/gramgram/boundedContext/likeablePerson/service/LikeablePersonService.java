@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,15 @@ public class LikeablePersonService {
 
     @Transactional
     public RsData<LikeablePerson> like(Member member, String username, int attractiveTypeCode) {
-        if(member.getInstaMember().getFromLikeablePeople().size() >= 10) {
+        List<LikeablePerson> likeablePeople = member.getInstaMember().getFromLikeablePeople();
+        if(likeablePeople.stream().anyMatch(likeablePerson -> likeablePerson.getToInstaMember().getUsername().equals(username))){
+            Optional<LikeablePerson> likeablePerson = likeablePeople.stream().filter(likeablePerson1 -> likeablePerson1.getToInstaMember().getUsername().equals(username)).findFirst();
+            if(likeablePerson.get().getAttractiveTypeCode() == attractiveTypeCode) {
+                return RsData.of("F-4", "호감 상대를 중복으로 등록할 수 없습니다.");
+            }
+        }
+
+        if(likeablePeople.size() >= 10) {
             return RsData.of("F-3", "호감 상대는 최대 10명까지 등록할 수 있습니다.");
         }
 
@@ -49,7 +58,7 @@ public class LikeablePersonService {
         fromInstaMember.addFromLikeablePerson(likeablePerson);
         toInstaMember.addToLikeablePerson(likeablePerson);
 
-        return RsData.of("S-1", "입력하신 인스타유저(%s)를 호감상대로 등록되었습니다.".formatted(username), likeablePerson);
+        return RsData.of("S-1", "입력하신 인스타 유저(%s)가 호감상대로 등록되었습니다.".formatted(username), likeablePerson);
     }
 
     public List<LikeablePerson> findByFromInstaMemberId(Long fromInstaMemberId) {
