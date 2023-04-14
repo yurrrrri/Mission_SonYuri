@@ -73,16 +73,14 @@ public class LikeablePersonService {
     }
 
     @Transactional
-    public RsData<LikeablePerson> delete(Member member, LikeablePerson likeablePerson){
-        if(likeablePerson == null) {
-            return RsData.of("F-1", "삭제할 대상이 없습니다.");
-        }
-        if(!member.getInstaMember().getId().equals(likeablePerson.getFromInstaMember().getId())){
-            return RsData.of("F-2", "삭제 권한이 없습니다.");
-        }
-        likeablePersonRepository.delete(likeablePerson);
+    public RsData delete(Member member, LikeablePerson likeablePerson){
+        RsData canDeleteRsData = canDelete(member, likeablePerson);
+
+        if(canDeleteRsData.isFail()) { return canDeleteRsData; }
 
         String deleteUsername = likeablePerson.getToInstaMember().getUsername();
+
+        likeablePersonRepository.delete(likeablePerson);
         return RsData.of("S-1", "호감상대 %s 님이 삭제되었습니다.".formatted(deleteUsername));
     }
 
@@ -95,5 +93,15 @@ public class LikeablePersonService {
         LikeablePerson likeablePerson1 = likeablePerson.toBuilder().attractiveTypeCode(attractiveTypeCode).build();
         likeablePersonRepository.save(likeablePerson1);
         return RsData.of("S-2", "%s에 대한 호감 사유를 변경하였습니다.".formatted(likeablePerson.getToInstaMember().getUsername()));
+    }
+
+    private RsData canDelete(Member member, LikeablePerson likeablePerson) {
+        if(likeablePerson == null) {
+            return RsData.of("F-1", "삭제할 대상이 없습니다.");
+        }
+        if(!member.getInstaMember().getId().equals(likeablePerson.getFromInstaMember().getId())){
+            return RsData.of("F-2", "삭제 권한이 없습니다.");
+        }
+        return RsData.of("S-1", "호감상대 삭제가 가능합니다.");
     }
 }
