@@ -1,6 +1,7 @@
 package com.ll.gramgram.boundedContext.likeablePerson.controller;
 
 
+import com.ll.gramgram.base.appConfig.AppConfig;
 import com.ll.gramgram.boundedContext.likeablePerson.entity.LikeablePerson;
 import com.ll.gramgram.boundedContext.likeablePerson.service.LikeablePersonService;
 import org.junit.jupiter.api.DisplayName;
@@ -176,7 +177,7 @@ public class LikeablePersonControllerTests {
     }
 
     @Test
-    @DisplayName("user3에 등록 안 된 호감상대 삭제")
+    @DisplayName("등록되어 있지 않은 호감 상대 삭제 시도")
     @WithUserDetails("user3")
     void t007() throws Exception {
         // WHEN
@@ -251,5 +252,41 @@ public class LikeablePersonControllerTests {
 
         LikeablePerson likeablePerson = likeablePersonService.findById(1L);
         assertThat(likeablePerson.getAttractiveTypeCode()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("호감 상대를 기준 숫자 이상으로 등록 시도")
+    @WithUserDetails("user2")
+    void t011() throws Exception {
+        long likeablePersonFromMax = AppConfig.getLikeablePersonFromMax();
+
+        // 기준 숫자만큼 호감 상대 등록
+        for(int i=1; i<=likeablePersonFromMax; i++) {
+            ResultActions resultActions = mvc
+                    .perform(post("/likeablePerson/add")
+                            .with(csrf()) // CSRF 키 생성
+                            .param("username", "aaaa%d".formatted(i))
+                            .param("attractiveTypeCode", "1")
+                    )
+                    .andDo(print());
+        }
+
+        // WHEN - 기준 숫자 이상으로 호감 상대 등록 시도
+        ResultActions resultActions = mvc
+                .perform(post("/likeablePerson/add")
+                        .with(csrf()) // CSRF 키 생성
+                        .param("username", "aaaa%d".formatted(likeablePersonFromMax+1))
+                        .param("attractiveTypeCode", "1")
+                )
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(LikeablePersonController.class))
+                .andExpect(handler().methodName("add"))
+                .andExpect(status().is4xxClientError());
+
+        assertThat(likeablePersonService.findByFromInstaMemberId(1L).size()).isEqualTo(likeablePersonFromMax);
+
     }
 }
