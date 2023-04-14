@@ -37,7 +37,7 @@ public class LikeablePersonService {
             if(likeablePerson.getAttractiveTypeCode() == attractiveTypeCode) {
                 return RsData.of("F-4", "호감상대를 중복으로 등록할 수 없습니다.");
             } else {
-                return update(member, likeablePerson, attractiveTypeCode);
+                return modify(member, likeablePerson, attractiveTypeCode);
             }
         }
 
@@ -75,22 +75,22 @@ public class LikeablePersonService {
     @Transactional
     public RsData delete(Member member, LikeablePerson likeablePerson){
         RsData canDeleteRsData = canDelete(member, likeablePerson);
-
         if(canDeleteRsData.isFail()) { return canDeleteRsData; }
 
-        String deleteUsername = likeablePerson.getToInstaMember().getUsername();
+        likeablePerson.getFromInstaMember().removeFromLikeablePerson(likeablePerson);
+        likeablePerson.getToInstaMember().removeToLikeablePerson(likeablePerson);
 
         likeablePersonRepository.delete(likeablePerson);
+        String deleteUsername = likeablePerson.getToInstaMember().getUsername();
         return RsData.of("S-1", "호감상대 %s 님이 삭제되었습니다.".formatted(deleteUsername));
     }
 
     @Transactional
-    public RsData<LikeablePerson> update(Member member, LikeablePerson likeablePerson, int attractiveTypeCode) {
-        if ( member.hasConnectedInstaMember() == false ) {
-            return RsData.of("F-1", "먼저 본인의 인스타그램 아이디를 입력해야 합니다.");
-        }
-
-        LikeablePerson likeablePerson1 = likeablePerson.toBuilder().attractiveTypeCode(attractiveTypeCode).build();
+    public RsData<LikeablePerson> modify(Member member, LikeablePerson likeablePerson, int attractiveTypeCode) {
+        LikeablePerson likeablePerson1 = likeablePerson
+                .toBuilder()
+                .attractiveTypeCode(attractiveTypeCode)
+                .build();
         likeablePersonRepository.save(likeablePerson1);
         return RsData.of("S-2", "%s에 대한 호감 사유를 변경하였습니다.".formatted(likeablePerson.getToInstaMember().getUsername()));
     }
