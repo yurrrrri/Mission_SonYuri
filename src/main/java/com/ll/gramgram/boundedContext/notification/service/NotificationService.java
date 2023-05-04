@@ -50,7 +50,9 @@ public class NotificationService {
 
     public void updateReadDate(List<Notification> notifications) {
         for(Notification notification : notifications) {
-            notification.updateReadDate();
+            if(notification == null) {
+                notification.updateReadDate();
+            }
         }
     }
 }
