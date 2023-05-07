@@ -36,6 +36,10 @@ public class Notification extends BaseEntity {
         this.readDate = LocalDateTime.now();
     }
 
+    public boolean isHot() {
+        return getCreateDate().isAfter(LocalDateTime.now().minusMinutes(60));
+    }
+
     public String getOldAttractiveTypeDisplayName() {
         return switch (oldAttractiveTypeCode) {
             case 1 -> "외모";

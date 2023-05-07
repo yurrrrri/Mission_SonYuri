@@ -22,7 +22,6 @@ public class InstaMemberService {
     private final InstaMemberRepository instaMemberRepository;
     private final MemberService memberService;
     private final InstaMemberSnapshotRepository instaMemberSnapshotRepository;
-    private final NotificationService notificationService;
 
     public Optional<InstaMember> findByUsername(String username) {
         return instaMemberRepository.findByUsername(username);
@@ -103,8 +102,6 @@ public class InstaMemberService {
         InstaMemberSnapshot snapshot = toInstaMember.snapshot("ModifyAttractiveType");
 
         saveSnapshot(snapshot);
-
-        notificationService.createAfterModify(likeablePerson, oldAttractiveTypeCode); // 알림 생성
     }
 
     public void whenAfterLike(LikeablePerson likeablePerson) {
@@ -116,8 +113,6 @@ public class InstaMemberService {
         InstaMemberSnapshot snapshot = toInstaMember.snapshot("Like");
 
         saveSnapshot(snapshot);
-
-        notificationService.createAfterLike(likeablePerson); // 알림 생성
     }
 
     public void whenBeforeCancelLike(LikeablePerson likeablePerson) {
