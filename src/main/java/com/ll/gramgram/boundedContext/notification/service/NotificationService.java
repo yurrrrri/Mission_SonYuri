@@ -20,32 +20,32 @@ public class NotificationService {
     }
 
     public RsData<Notification> createAfterLike(LikeablePerson likeablePerson) {
-        Notification notification = Notification
-                .builder()
-                .toInstaMember(likeablePerson.getToInstaMember())
-                .fromInstaMember(likeablePerson.getFromInstaMember())
-                .typeCode("Like")
-                .oldAttractiveTypeCode(likeablePerson.getAttractiveTypeCode())
-                .build();
-
-        notificationRepository.save(notification);
+        Notification notification = create(likeablePerson, "Like", 0, likeablePerson.getAttractiveTypeCode());
 
         return RsData.of("S-1", "알림이 생성되었습니다.", notification);
     }
 
     public RsData<Notification> createAfterModify(LikeablePerson likeablePerson, int oldAttractiveTypeCode) {
+        Notification notification = create(likeablePerson, "ModifyAttractiveType", oldAttractiveTypeCode, likeablePerson.getAttractiveTypeCode());
+
+        return RsData.of("S-1", "알림이 생성되었습니다.", notification);
+    }
+
+    private Notification create(LikeablePerson likeablePerson, String typeCode, int oldAttractiveTypeCode, int newAttractiveTypeCode) {
         Notification notification = Notification
                 .builder()
                 .toInstaMember(likeablePerson.getToInstaMember())
                 .fromInstaMember(likeablePerson.getFromInstaMember())
-                .typeCode("ModifyAttractiveType")
+                .typeCode(typeCode)
                 .oldAttractiveTypeCode(oldAttractiveTypeCode)
-                .newAttractiveTypeCode(likeablePerson.getAttractiveTypeCode())
+                .newAttractiveTypeCode(newAttractiveTypeCode)
+                .oldGender(null)
+                .newGender(null)
                 .build();
 
         notificationRepository.save(notification);
 
-        return RsData.of("S-1", "알림이 생성되었습니다.", notification);
+        return notification;
     }
 
     public void updateReadDate(List<Notification> notifications) {
@@ -55,4 +55,9 @@ public class NotificationService {
             }
         }
     }
+
+    public boolean hasUnreadNotifications(InstaMember instaMember) {
+        return notificationRepository.countByToInstaMemberAndReadDateIsNull(instaMember) > 0;
+    }
+
 }
