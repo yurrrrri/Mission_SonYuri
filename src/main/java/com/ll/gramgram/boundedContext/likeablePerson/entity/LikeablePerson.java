@@ -12,9 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Getter
@@ -42,15 +40,7 @@ public class LikeablePerson extends BaseEntity {
 
     // 초 단위에서 올림 해주세요.
     public String getModifyUnlockDateRemainStrHuman() {
-        Date unlockTime = Timestamp.valueOf(modifyUnlockDate);
-        Date currentTime = Timestamp.valueOf(LocalDateTime.now());
-
-        long diff = unlockTime.getTime() - currentTime.getTime();
-
-        long diffHour = diff / 3600000;
-        long diffMinuit = (diff % 3600000) / 60000;
-
-        return "%d시간 %d분".formatted(diffHour, diffMinuit);
+        return Ut.time.diffFormat1Human(LocalDateTime.now(), modifyUnlockDate);
     }
 
     public RsData updateAttractionTypeCode(int attractiveTypeCode) {
