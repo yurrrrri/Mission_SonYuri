@@ -219,4 +219,18 @@ public class LikeablePersonService {
 
         return RsData.of("S-1", "호감사유변경이 가능합니다.");
     }
+
+    public List<LikeablePerson> getClassifiedLikeablePeople(InstaMember instaMember, String gender, String attractiveTypeCode, String sortCode) {
+        List<LikeablePerson> likeablePeople = instaMember.getToLikeablePeople();
+
+        if(!gender.equals("")){
+            likeablePeople = likeablePeople.stream().filter(lp -> lp.getFromInstaMember().getGender().equals(gender)).toList();
+        }
+        if(!attractiveTypeCode.equals("")){
+            int code = Integer.parseInt(attractiveTypeCode);
+            likeablePeople = likeablePeople.stream().filter(lp -> lp.getAttractiveTypeCode() == code).toList();
+        }
+
+        return likeablePeople;
+    }
 }
