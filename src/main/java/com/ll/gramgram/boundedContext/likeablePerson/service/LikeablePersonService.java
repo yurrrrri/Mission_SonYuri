@@ -15,9 +15,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -230,6 +232,21 @@ public class LikeablePersonService {
             int code = Integer.parseInt(attractiveTypeCode);
             likeablePeople = likeablePeople.stream().filter(lp -> lp.getAttractiveTypeCode() == code).toList();
         }
+        likeablePeople = switch(sortCode){
+            case "2"-> likeablePeople.stream()
+                        .sorted(Comparator.comparing(LikeablePerson::getId)).toList();
+            case "3" -> likeablePeople.stream()
+                        .sorted(Comparator.comparing((LikeablePerson lp) -> lp.getFromInstaMember().getLikes()).reversed()).toList();
+            case "4" -> likeablePeople.stream()
+                        .sorted(Comparator.comparing(lp -> lp.getFromInstaMember().getLikes())).toList();
+            case "5" -> likeablePeople.stream()
+                        .sorted(Comparator.comparing((LikeablePerson lp) -> lp.getFromInstaMember().getGender()).reversed()
+                                .thenComparing(Comparator.comparing(LikeablePerson::getId).reversed())).toList();
+            case "6" -> likeablePeople.stream()
+                        .sorted(Comparator.comparing(LikeablePerson::getAttractiveTypeCode)
+                                .thenComparing(Comparator.comparing(LikeablePerson::getId).reversed())).toList();
+            default -> likeablePeople;
+        };
 
         return likeablePeople;
     }
